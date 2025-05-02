@@ -1,0 +1,2 @@
+# LockMarkaziBOT
+now not data
