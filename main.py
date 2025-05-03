@@ -5,8 +5,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # تنظیم توکن و آیدی کانال
-TOKEN = "7976346746:AAGF9wqw-B122eiUOAi1qOwgBABbD5MgaWA"  # توکنی که از BotFather گرفتی
-CHANNEL_ID = "@JaSignal"  # یوزرنیم کانالت (مثلاً @MyChannel)
+TOKEN = "5605657176:AAFKyDSvc1j_nV5RRHX91lJDGCZzpU9es4I"  # توکنی که از BotFather گرفتی
+CHANNEL_ID = "@RoyalGuardX"  # یوزرنیم کانالت (مثلاً @MyChannel)
 
 # ایجاد اپلیکیشن Flask
 app = Flask(__name__)
