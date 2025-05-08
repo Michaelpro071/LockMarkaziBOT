@@ -1,7 +1,8 @@
 import os
 from flask import Flask, request
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+import asyncio
 
 # تنظیم توکن و آیدی کانال
 TOKEN = "7665575293:AAGyuK6D5kS-cnL-76ojQRfP1jCmKLjPHR0"  # توکن جدید
@@ -54,7 +55,7 @@ bot_app.add_handler(CallbackQueryHandler(check_membership, pattern="check_member
 def webhook():
     try:
         update = Update.de_json(request.get_json(force=True), bot_app.bot)
-        bot_app.run_polling(update=update)  # استفاده از Polling برای پردازش
+        asyncio.run(bot_app.process_update(update))  # پردازش آپدیت با asyncio
         return "OK", 200
     except Exception as e:
         print(f"Webhook error: {str(e)}")
@@ -65,15 +66,19 @@ def webhook():
 def set_webhook():
     try:
         webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
-        bot_app.bot.set_webhook(webhook_url)
+        asyncio.run(bot_app.bot.set_webhook(webhook_url))  # استفاده از asyncio.run
         return "Webhook set successfully", 200
     except Exception as e:
         return f"Failed to set webhook: {str(e)}", 500
 
+# تابع برای تنظیم اولیه Webhook
+async def init_bot():
+    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
+    await bot_app.bot.set_webhook(webhook_url)
+    print(f"Webhook set to {webhook_url}")
+
 # اجرای سرور
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 80))  # پورت پیش‌فرض 80
-    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
-    bot_app.bot.set_webhook(webhook_url)
-    print(f"Webhook set to {webhook_url}")
+    port = int(os.getenv("PORT", 80))  # پورت 80 برای Render
+    asyncio.run(init_bot())  # تنظیم Webhook اولیه
     app.run(host="0.0.0.0", port=port)
