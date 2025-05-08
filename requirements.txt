@@ -4,3 +4,4 @@ flask[async]
 gunicorn
 gunicorn==22.0.0
 asyncio
+asgiref==3.8.1
