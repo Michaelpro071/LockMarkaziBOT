@@ -1,11 +1,11 @@
 import os
-import asyncio
 from flask import Flask, request
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-TOKEN = "7665575293:AAGyuK6D5kS-cnL-76ojQRfP1jCmKLjPHR0"
-CHANNEL_ID = "@RoyalGuardX"
+# تنظیم توکن و آیدی کانال
+TOKEN = "7665575293:AAGyuK6D5kS-cnL-76ojQRfP1jCmKLjPHR0"  # توکن جدید
+CHANNEL_ID = "@RoyalGuardX"  # کانال (اگر عوض شده، تغییر بده)
 
 # ایجاد اپلیکیشن Flask
 app = Flask(__name__)
@@ -17,12 +17,10 @@ bot_app = Application.builder().token(TOKEN).build()
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     try:
-        # بررسی عضویت کاربر در کانال
         member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
         if member.status in ["member", "administrator", "creator"]:
             await update.message.reply_text("شما عضو کانال هستید! حالا می‌تونید از امکانات ربات استفاده کنید.")
         else:
-            # دکمه برای عضویت در کانال
             keyboard = [
                 [InlineKeyboardButton("عضویت در کانال", url=f"https://t.me/{CHANNEL_ID[1:]}")],
                 [InlineKeyboardButton("بررسی عضویت", callback_data="check_membership")]
@@ -39,7 +37,6 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user = query.from_user
     try:
-        # بررسی دوباره عضویت
         member = await context.bot.get_chat_member(CHANNEL_ID, user.id)
         if member.status in ["member", "administrator", "creator"]:
             await query.message.reply_text("تبریک! حالا شما عضو کانال هستید!")
@@ -48,18 +45,16 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await query.message.reply_text(f"خطایی رخ داد: {str(e)}")
 
-# اضافه کردن هندلرها به ربات
+# اضافه کردن هندلرها
 bot_app.add_handler(CommandHandler("start", start))
 bot_app.add_handler(CallbackQueryHandler(check_membership, pattern="check_membership"))
 
-# مسیر Webhook در Flask
+# مسیر Webhook
 @app.route(f"/{TOKEN}", methods=["POST"])
-async def webhook():
+def webhook():
     try:
-        # دریافت آپدیت از تلگرام
         update = Update.de_json(request.get_json(force=True), bot_app.bot)
-        # پردازش آپدیت
-        await bot_app.process_update(update)
+        bot_app.run_polling(update=update)  # استفاده از Polling برای پردازش
         return "OK", 200
     except Exception as e:
         print(f"Webhook error: {str(e)}")
@@ -67,25 +62,18 @@ async def webhook():
 
 # تنظیم Webhook موقع شروع سرور
 @app.route("/")
-async def set_webhook():
+def set_webhook():
     try:
         webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
-        await bot_app.bot.set_webhook(webhook_url)
+        bot_app.bot.set_webhook(webhook_url)
         return "Webhook set successfully", 200
     except Exception as e:
         return f"Failed to set webhook: {str(e)}", 500
 
-# تابع برای اجرای اولیه اپلیکیشن
-async def init_bot():
-    # اطمینان از تنظیم Webhook در شروع
-    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
-    await bot_app.bot.set_webhook(webhook_url)
-    print(f"Webhook set to {webhook_url}")
-
+# اجرای سرور
 if __name__ == "__main__":
-    # اجرای اپلیکیشن Flask
-    port = int(os.getenv("PORT", 8000))
-    # اجرای اولیه Webhook
-    asyncio.run(init_bot())
-    # اجرای سرور Flask
+    port = int(os.getenv("PORT", 80))  # پورت پیش‌فرض 80
+    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
+    bot_app.bot.set_webhook(webhook_url)
+    print(f"Webhook set to {webhook_url}")
     app.run(host="0.0.0.0", port=port)
