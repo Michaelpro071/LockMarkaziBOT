@@ -4,9 +4,8 @@ from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# تنظیم توکن و آیدی کانال
-TOKEN = "5605657176:AAFKyDSvc1j_nV5RRHX91lJDGCZzpU9es4I"  # توکن جدید
-CHANNEL_ID = "@RoyalGuardX"  # نام کانال جدید
+TOKEN = "7665575293:AAGyuK6D5kS-cnL-76ojQRfP1jCmKLjPHR0"
+CHANNEL_ID = "@RoyalGuardX"
 
 # ایجاد اپلیکیشن Flask
 app = Flask(__name__)
