@@ -2,8 +2,8 @@ import os
 from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-import asyncio
 import logging
+import asyncio
 
 # تنظیم لاگ‌گیری
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -64,7 +64,9 @@ def webhook():
         logger.info("Received webhook update")
         update = Update.de_json(request.get_json(force=True), bot_app.bot)
         if update:
-            asyncio.run(bot_app.process_update(update))
+            # استفاده از run_async برای پردازش آپدیت‌ها
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(bot_app.process_update(update))
             logger.info("Update processed successfully")
             return "OK", 200
         else:
@@ -79,7 +81,8 @@ def webhook():
 def set_webhook():
     try:
         webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
-        asyncio.run(bot_app.bot.set_webhook(webhook_url))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(bot_app.bot.set_webhook(webhook_url))
         logger.info(f"Webhook set to {webhook_url}")
         return "Webhook set successfully", 200
     except Exception as e:
@@ -89,7 +92,6 @@ def set_webhook():
 # اجرای سرور
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 80))
-    logger.info(f"Starting server on port {port}")
-    # برای تست، از Polling استفاده کن
-    logger.info("Starting bot with polling")
-    asyncio.run(bot_app.run_polling())
+    logger.info(f"Starting Flask server on port {port}")
+    # راه‌اندازی سرور Flask
+    app.run(host="0.0.0.0", port=port, debug=False)
